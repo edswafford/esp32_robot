@@ -54,7 +54,6 @@ ros::Subscriber<neo_msgs::ImuCalState> imu_cal_state_sub("imu_cal_state", imuCal
 
 void imuCalStateCallback(const neo_msgs::ImuCalState &cmd)
 {
-
   imu_cal_state = cmd.imu_state;
 }
 
@@ -65,7 +64,9 @@ void setup()
   {
   }
 
+
   nh.initSerialNode(&Serial2, 57600, SERIAL_8N1, RX2, TX2);
+  nh.subscribe(imu_cal_state_sub);
 
   // nh.subscribe(pid_sub);
   //nh.subscribe(cmd_sub);
@@ -76,7 +77,8 @@ void setup()
   {
     nh.spinOnce();
   }
-  nh.loginfo("LINOBASE CONNECTED");
+  nh.loginfo("CONNECTED to ROS");
+  Serial.println("ESP32 IMU running");
 
   // start communication with IMU
   imu_status = imu.begin();
@@ -108,8 +110,11 @@ void loop()
       switch (imu_cal_state)
       {
       case CalibCmds::CAL_ACCEL: 
+        nh.loginfo("Calling Accel Cal");
         imu.calibrate_accelerometer(cal_imu_msg);
-        cal_imu_pub.publish(&cal_imu_msg);
+         nh.loginfo("publishing cal_imu_msg");
+         cal_imu_pub.publish(&cal_imu_msg);
+         nh.loginfo("Done");
         break;
       case CalibCmds::CAL_MAG: 
         
