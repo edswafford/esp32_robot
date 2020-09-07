@@ -20,7 +20,7 @@
 //header file for imu
 #include "neo_msgs/Imu.h"
 #include "neo_msgs/ImuCal.h"
-#include "neo_msgs/ImuCalState.h"
+
 
 //#include "neo_base_config.h"
 //#include "Motor.h"
@@ -30,18 +30,15 @@
 
 #include <ESP32Encoder.h>
 
-#define IMU_PUBLISH_RATE 20 //hz
-#define COMMAND_RATE 20     //hz
-#define DEBUG_RATE 5
+#define IMU_PUBLISH_RATE 50 //hz
 
 //callback function prototypes
-void imuCalStateCallback(const neo_msgs::ImuCalState &cmd_msg);
 void commandCallback(const geometry_msgs::Twist &cmd_msg);
 void PIDCallback(const neo_msgs::PID &pid);
 
 ros::NodeHandle nh;
 int imu_status = 0;
-short imu_cal_state = CalibCmds::END;
+bool save_calibration_ = false;
 
 IMU imu;
 neo_msgs::Imu raw_imu_msg;
@@ -49,13 +46,6 @@ ros::Publisher raw_imu_pub("raw_imu", &raw_imu_msg);
 
 neo_msgs::ImuCal cal_imu_msg;
 ros::Publisher cal_imu_pub("cal_imu", &cal_imu_msg);
-
-ros::Subscriber<neo_msgs::ImuCalState> imu_cal_state_sub("imu_cal_state", imuCalStateCallback);
-
-void imuCalStateCallback(const neo_msgs::ImuCalState &cmd)
-{
-  imu_cal_state = cmd.imu_state;
-}
 
 void setup()
 {
@@ -66,7 +56,6 @@ void setup()
 
 
   nh.initSerialNode(&Serial2, 57600, SERIAL_8N1, RX2, TX2);
-  nh.subscribe(imu_cal_state_sub);
 
   // nh.subscribe(pid_sub);
   //nh.subscribe(cmd_sub);
@@ -104,29 +93,14 @@ void loop()
 
   if (imu_status)
   {
-    if (imu_cal_state != CalibCmds::END)
+    if (save_calibration_)
     {
-      // Calibrating IMU
-      switch (imu_cal_state)
-      {
-      case CalibCmds::CAL_ACCEL: 
-        nh.loginfo("Calling Accel Cal");
-        imu.calibrate_accelerometer(cal_imu_msg);
-         nh.loginfo("publishing cal_imu_msg");
-         cal_imu_pub.publish(&cal_imu_msg);
-         nh.loginfo("Done");
-        break;
-      case CalibCmds::CAL_MAG: 
-        
-        break;
+      save_calibration_ = false;
+      // store calibration 
 
-        case CalibCmds::SAVE: 
-        
-        break;
+      // published what was stored
 
-      default:
-        break;
-      }
+      cal_imu_pub.publish(&cal_imu_msg);
     }
     else
     {
