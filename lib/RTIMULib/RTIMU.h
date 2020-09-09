@@ -94,7 +94,11 @@ public:
     inline unsigned long getTimestamp() { return m_imuData.timestamp; }     // and the timestamp for it
 
     //  getIMUData returns the standard outputs of the IMU and fusion filter
+<<<<<<< HEAD
     const RTIMU_DATA& getIMUData() { return m_imuData; }
+=======
+    inline const RTIMU_DATA& getIMUData() { return m_imuData; }
+>>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
 
     //  setCompassCalibrationMode() turns off use of cal data so that raw data can be accumulated
     //  to derive calibration data
