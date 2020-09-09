@@ -11,15 +11,13 @@
 
 #include "ros.h"
 #include "ros/time.h"
-//header file for publishing velocities for odom
-#include "neo_msgs/Velocities.h"
-//header file for cmd_subscribing to "cmd_vel"
-#include "geometry_msgs/Twist.h"
-//header file for pid server
-#include "neo_msgs/PID.h"
-//header file for imu
+#include "neo_msgs/Velocities.h"  //header file for publishing velocities for odom
+#include "geometry_msgs/Twist.h"  //header file for cmd_subscribing to "cmd_vel"
+#include "neo_msgs/PID.h"         //header file for pid server
 #include "neo_msgs/Imu.h"
 #include "neo_msgs/ImuCal.h"
+#include "neo_msgs/ImuCmd.h"
+#include "cal_imu.h"
 
 
 //#include "neo_base_config.h"
@@ -35,10 +33,16 @@
 //callback function prototypes
 void commandCallback(const geometry_msgs::Twist &cmd_msg);
 void PIDCallback(const neo_msgs::PID &pid);
+void imuCallback(const neo_msgs::ImuCmd &imu_mode);
 
 ros::NodeHandle nh;
+bool calibration_mode_ = false;
 int imu_status = 0;
-bool save_calibration_ = false;
+
+
+//ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
+//ros::Subscriber<neo_msgs::PID> pid_sub("pid", PIDCallback);
+ros::Subscriber<neo_msgs::ImuCmd> imu_mode_sub("imu_cmd", imuCallback);
 
 IMU imu;
 neo_msgs::Imu raw_imu_msg;
@@ -54,11 +58,12 @@ void setup()
   {
   }
 
-
   nh.initSerialNode(&Serial2, 57600, SERIAL_8N1, RX2, TX2);
 
   // nh.subscribe(pid_sub);
   //nh.subscribe(cmd_sub);
+    nh.subscribe(imu_mode_sub);
+
   // nh.advertise(raw_vel_pub);
   nh.advertise(raw_imu_pub);
 
@@ -67,7 +72,7 @@ void setup()
     nh.spinOnce();
   }
   nh.loginfo("CONNECTED to ROS");
-  Serial.println("ESP32 IMU running");
+
 
   // start communication with IMU
   imu_status = imu.begin();
@@ -93,14 +98,13 @@ void loop()
 
   if (imu_status)
   {
-    if (save_calibration_)
+    if (calibration_mode_)
     {
-      save_calibration_ = false;
-      // store calibration 
+      // Calibrate IMU
+      CalImu calImu(imu);
+      calImu.doCalibration();
 
-      // published what was stored
-
-      cal_imu_pub.publish(&cal_imu_msg);
+     // cal_imu_pub.publish(&cal_imu_msg);
     }
     else
     {
@@ -120,4 +124,10 @@ void loop()
   }
   //call all the callbacks waiting to be called
   nh.spinOnce();
+}
+
+
+void imuCallback(const neo_msgs::ImuCmd &imu_mode)
+{
+  calibration_mode_ = imu_mode.imu_mode;
 }
