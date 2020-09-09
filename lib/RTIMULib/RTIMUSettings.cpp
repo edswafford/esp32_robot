@@ -70,7 +70,7 @@
 bool RTIMUSettings::init(){
   if (!eeprom.init())
     {
-        HAL_ERROR("Failed to initialize Calibration Storage memory.  Calibration values cannot be saved!");
+        HAL_ERROR("Failed to initialize Calibration Storage memory.  Calibration values are not available");
     }
     return loadSettings();
 }

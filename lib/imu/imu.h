@@ -1,49 +1,50 @@
-#include <MPU9250.h>
 #include <EEPROM.h>
-#include "neo_msgs/Imu.h"
-#include "neo_msgs/ImuCal.h"
+#include <Arduino.h>
 
-enum CalibCmds
-{
-    SAVE,
-    END
-};
+#include "RTIMUSettings.h"
+#include "RTIMU.h"
+#include "RTIMUMagCal.h"
+#include "RTIMUAccelCal.h"
+#include "RTIMUMPU9250.h"
 
-class IMU : public MPU9250
+class IMU
 {
 public:
-    IMU() : MPU9250(Wire, 0x68) {}
-
-    int begin()
+    IMU()
     {
-        int status = MPU9250::begin();
-        if (status > 0)
-        {
-            // setting the accelerometer full scale range to +/-8G
-            if(setAccelRange(MPU9250::ACCEL_RANGE_2G) < 0) {
-                return -7;
-            }
-            // setting the gyroscope full scale range to +/-250 deg/s
-            if(setGyroRange(MPU9250::GYRO_RANGE_250DPS) < 0){
-                return -8;
-            }
-
-            // setting DLPF bandwidth to 20 Hz
-            if(setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ) < 0) {
-                return -9;
-            }
-            // setting SRD to 19 for a 50 Hz update rate
-            if(setSrd(19) < 0) {
-                return -11;
-            }
-        }
-        return status;
+    }
+    ~IMU()
+    {
+        delete rt_imu_;
     }
 
-    void fetch_imu_data(neo_msgs::Imu &raw_imu_msg);
+    bool init()
+    {
 
+        // Initialize Calibration (Load from EEPROM)
+        bool settings_valid = settings_.init();
 
+        rt_imu_ = new RTIMUMPU9250(settings_);
+        bool imu_valid = rt_imu_->IMUInit();
+
+        rt_imu_->setSlerpPower(0.02);
+        rt_imu_->setGyroEnable(true);
+        rt_imu_->setAccelEnable(true);
+        rt_imu_->setCompassEnable(true);
+        valid_ = settings_valid && imu_valid;
+
+        return valid_;
+    }
+    bool isValid() { return valid_; }
+
+    void read() {
+        rt_imu_->IMURead();
+    }
+    void getIMUData(){
+        rt_imu_->getIMUData();
+    }
 private:
-    short minVal[3];
-    short maxVal[3];
+    bool valid_{false};
+    RTIMUSettings settings_;
+    RTIMU *rt_imu_;
 };

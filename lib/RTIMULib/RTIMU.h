@@ -73,6 +73,17 @@ public:
 
     virtual bool IMUGyroBiasValid();
 
+   void setSlerpPower(RTFLOAT power) { m_fusion->setSlerpPower(power); }
+
+    //  call the following to reset the fusion algorithm
+
+    void resetFusion() { m_fusion->reset(); }
+
+    //  the following three functions control the influence of the gyro, accel and compass sensors
+
+    void setGyroEnable(bool enable) { m_fusion->setGyroEnable(enable);}
+    void setAccelEnable(bool enable) { m_fusion->setAccelEnable(enable);}
+    void setCompassEnable(bool enable) { m_fusion->setCompassEnable(enable);}
 
     bool getAccelCalibrationValid() { return !m_accelCalibrationMode && m_settings.m_accelCalValid; }
 

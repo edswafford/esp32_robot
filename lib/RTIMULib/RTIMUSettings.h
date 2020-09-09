@@ -26,7 +26,7 @@
 
 #include "RTMath.h"
 #include "RTIMULibDefs.h"
-#include "CalLib.h"
+#include "RTEeprom.h"
 
 class RTIMUSettings
 {
@@ -148,7 +148,7 @@ public:
 
 
 private:
-CalLibEEPROM eeprom;
+RTEEPROM eeprom;
 CALLIB_DATA calData_;                                  // the calibration data
 
 };

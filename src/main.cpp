@@ -11,15 +11,13 @@
 
 #include "ros.h"
 #include "ros/time.h"
-//header file for publishing velocities for odom
-#include "neo_msgs/Velocities.h"
-//header file for cmd_subscribing to "cmd_vel"
+
+#include "neo_msgs/Velocities.h"    //header file for publishing velocities for odom
 #include "geometry_msgs/Twist.h"
-//header file for pid server
 #include "neo_msgs/PID.h"
-//header file for imu
 #include "neo_msgs/Imu.h"
 #include "neo_msgs/ImuCal.h"
+#include "neo_msgs/ImuMode.h"
 
 
 //#include "neo_base_config.h"
@@ -35,10 +33,15 @@
 //callback function prototypes
 void commandCallback(const geometry_msgs::Twist &cmd_msg);
 void PIDCallback(const neo_msgs::PID &pid);
+void imuCallback(const neo_msgs::ImuMode &imu_mode);
 
 ros::NodeHandle nh;
-int imu_status = 0;
-bool save_calibration_ = false;
+bool calibration_mode_ = false;
+
+//ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
+//ros::Subscriber<neo_msgs::PID> pid_sub("pid", PIDCallback);
+ros::Subscriber<neo_msgs::ImuMode> imu_mode_sub("pid", imuCallback);
+
 
 IMU imu;
 neo_msgs::Imu raw_imu_msg;
@@ -59,6 +62,8 @@ void setup()
 
   // nh.subscribe(pid_sub);
   //nh.subscribe(cmd_sub);
+  nh.subscribe(imu_mode_sub);
+
   // nh.advertise(raw_vel_pub);
   nh.advertise(raw_imu_pub);
 
@@ -67,17 +72,13 @@ void setup()
     nh.spinOnce();
   }
   nh.loginfo("CONNECTED to ROS");
-  Serial.println("ESP32 IMU running");
 
   // start communication with IMU
-  imu_status = imu.begin();
-  raw_imu_msg.imu_status = static_cast<int8_t>(imu_status);
-  if (imu_status < 0)
+  if (!imu.init())
   {
     // IMU initialization unsuccessful
     nh.loginfo("IMU Error: initialization unsuccessful");
     raw_imu_pub.publish(&raw_imu_msg);
-    nh.spinOnce();
   }
   else
   {
@@ -91,20 +92,18 @@ void loop()
   static unsigned long prev_imu_time = 0;
   //static unsigned long prev_debug_time = 0;
 
-  if (imu_status)
+  if (imu.isValid())
   {
-    if (save_calibration_)
+    if (calibration_mode_)
     {
-      save_calibration_ = false;
-      // store calibration 
+      // Calibrate IMU
 
-      // published what was stored
 
-      cal_imu_pub.publish(&cal_imu_msg);
     }
     else
     {
-      //this block publishes the IMU data based on defined rate
+      // Normal IMU Processing
+      /*
       if ((millis() - prev_imu_time) >= (1000 / IMU_PUBLISH_RATE))
       {
         // read the sensor
@@ -116,8 +115,15 @@ void loop()
 
         prev_imu_time = millis();
       }
+      */
     }
   }
   //call all the callbacks waiting to be called
   nh.spinOnce();
+}
+
+
+void imuCallback(const neo_msgs::ImuMode &imu_mode)
+{
+  calibration_mode_ = imu_mode.imu_mode;
 }
