@@ -16,32 +16,7 @@ enum CalibCmds
 class IMU : public MPU9250
 {
 public:
-    IMU() : MPU9250(Wire, 0x68)
-    {
-        if (storage.init())
-        {
-            storage.read(&_calib_data);
-        }
-        else
-        {
-            _calib_data.compassCalValid = false;
-            _calib_data.accelCalValid = false;
-
-            _calib_data.compassBias[0] = 0.0f;
-            _calib_data.compassBias[1] = 0.0f;
-            _calib_data.compassBias[2] = 0.0f;
-            _calib_data.compassScaleFactor[0] = 1.0f;
-            _calib_data.compassScaleFactor[1] = 1.0f;
-            _calib_data.compassScaleFactor[2] = 1.0f;
-
-            _calib_data.accelBias[0] = 0.0f;
-            _calib_data.accelBias[1] = 0.0f;
-            _calib_data.accelBias[2] = 0.0f;
-            _calib_data.accelScaleFactor[0] = 1.0f;
-            _calib_data.accelScaleFactor[1] = 1.0f;
-            _calib_data.accelScaleFactor[2] = 1.0f;
-        }
-    }
+    IMU() : MPU9250(Wire, 0x68){ }
 
     int getSrd() { return _srd; }
     IMU::AccelRange getAccelRange(){return _accelRange;}
@@ -74,14 +49,38 @@ public:
                 return -11;
             }
         }
+        if (storage.init())
+        {
+            storage.read(&_calib_data);
+        }
+        else
+        {
+            _calib_data.compassCalValid = false;
+            _calib_data.accelCalValid = false;
+
+            _calib_data.compassBias[0] = 0.0f;
+            _calib_data.compassBias[1] = 0.0f;
+            _calib_data.compassBias[2] = 0.0f;
+            _calib_data.compassScaleFactor[0] = 1.0f;
+            _calib_data.compassScaleFactor[1] = 1.0f;
+            _calib_data.compassScaleFactor[2] = 1.0f;
+
+            _calib_data.accelBias[0] = 0.0f;
+            _calib_data.accelBias[1] = 0.0f;
+            _calib_data.accelBias[2] = 0.0f;
+            _calib_data.accelScaleFactor[0] = 1.0f;
+            _calib_data.accelScaleFactor[1] = 1.0f;
+            _calib_data.accelScaleFactor[2] = 1.0f;
+        }
+
                 // Initialize IMU
-        setMagCalX(_calib_data.accelBias[0], _calib_data.accelScaleFactor[0]);
-        setMagCalX(_calib_data.accelBias[1], _calib_data.accelScaleFactor[1]);
-        setMagCalX(_calib_data.accelBias[2], _calib_data.accelScaleFactor[2]);
+        setMagCalX(_calib_data.compassBias[0], _calib_data.compassScaleFactor[0]);
+        setMagCalY(_calib_data.compassBias[1], _calib_data.compassScaleFactor[1]);
+        setMagCalZ(_calib_data.compassBias[2], _calib_data.compassScaleFactor[2]);
 
         setAccelCalX(_calib_data.accelBias[0], _calib_data.accelScaleFactor[0]);
-        setAccelCalX(_calib_data.accelBias[1], _calib_data.accelScaleFactor[1]);
-        setAccelCalX(_calib_data.accelBias[2], _calib_data.accelScaleFactor[2]);
+        setAccelCalY(_calib_data.accelBias[1], _calib_data.accelScaleFactor[1]);
+        setAccelCalZ(_calib_data.accelBias[2], _calib_data.accelScaleFactor[2]);
 
         return status;
     }
