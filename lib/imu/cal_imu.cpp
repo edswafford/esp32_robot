@@ -277,6 +277,7 @@ void CalImu::displayAccelMinMax(RTIMUAccelCal &accelCal)
                   accelCal.m_accelMin.data(1), accelCal.m_accelMin.data(2));
     Serial.printf("Max x: %6.2f  max y: %6.2f  max z: %6.2f\n", accelCal.m_accelMax.data(0),
                   accelCal.m_accelMax.data(1), accelCal.m_accelMax.data(2));
-
+    Serial.printf("x: %6.2f  y: %6.2f  z: %6.2f\n", accelCal.m_accel.data(0),
+                  accelCal.m_accel.data(1), accelCal.m_accel.data(2));
     Serial.flush();
 }

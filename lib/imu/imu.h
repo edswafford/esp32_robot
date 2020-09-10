@@ -54,27 +54,23 @@ public:
 */
     bool init()
     {
-        bool eeprom_valid = false;
-        if(_storage.init()) {
-            eeprom_valid =  _storage.read();
+        if(_storage.init() && _storage.read()) {
+            Serial.printf("Storage Calibration values are available\n");
         }
-        if(!eeprom_valid){
-            Serial.println("Failed to initialize Calibration Storage memory.  Calibration values are not available");
+        else {
+            Serial.printf("Failed to initialize Calibration Storage memory.  Calibration values are not available\n");
         }
 
-
-        // Initialize Calibration (Load from EEPROM)
-        bool settings_valid = settings_.init(&_storage);
+        // Initialize Calibration
+        settings_.init(&_storage);
 
         rt_imu_ = new RTIMUMPU9250(settings_);
-        bool imu_valid = rt_imu_->IMUInit();
+        valid_ = rt_imu_->IMUInit();
 
         rt_imu_->setSlerpPower(0.02);
         rt_imu_->setGyroEnable(true);
         rt_imu_->setAccelEnable(true);
         rt_imu_->setCompassEnable(true);
-        valid_ = eeprom_valid && settings_valid && imu_valid;
-
         return valid_;
     }
     bool isValid() { return valid_; }

@@ -377,12 +377,11 @@ bool RTIMUSettings::loadSettings()
             m_compassCalMin.setData(i, _storage_ptr->getCompassMin(i));
         }
 
-        HAL_INFO("Calbiration settings loaded\n");
-        return true;
+        HAL_INFO("Compass Calbiration settings loaded\n");
     }
     else
     {
-        HAL_ERROR("Failed to load calibration setting from EEPROM.");
+        HAL_ERROR("Failed to load Compass calibration setting from EEPROM.\n");
     }
 
     if (m_accelCalValid)
@@ -393,13 +392,11 @@ bool RTIMUSettings::loadSettings()
             m_accelCalMin.setData(i, _storage_ptr->getAccelMin(i));
         }
 
-        HAL_INFO("Calbiration settings loaded\n");
-        return true;
+        HAL_INFO("Accel Calbiration settings loaded\n");
     }
     else
     {
-        HAL_ERROR("Failed to load calibration setting from EEPROM.");
+        HAL_ERROR("Failed to load Accel calibration setting from EEPROM.\n");
     }
-
-    return false;
+    return true;
 }

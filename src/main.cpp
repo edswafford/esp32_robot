@@ -98,7 +98,8 @@ void loop()
     {
       // Calibrate IMU
     CalImu calImu(imu.getRTIMU(), imu.getSettings());
-
+    calImu.doCalibration();
+    calibration_mode_ = false;
 
      // cal_imu_pub.publish(&cal_imu_msg);
     }
