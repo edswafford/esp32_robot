@@ -26,14 +26,15 @@
 
 #include "RTMath.h"
 #include "RTIMULibDefs.h"
-#include "RTEeprom.h"
+#include "calibration_storage.h"
+
 
 class RTIMUSettings
 {
 public:
     RTIMUSettings(){}
 
-    bool init();
+    bool init(CalibrationStorage* storage);
     virtual bool saveSettings();
     void setDefaults();
     bool loadSettings();
@@ -148,9 +149,7 @@ public:
 
 
 private:
-RTEEPROM eeprom;
-CALLIB_DATA calData_;                                  // the calibration data
-
+    CalibrationStorage* _storage_ptr{nullptr};
 };
 
 #endif // _RTIMUSETTINGS_H

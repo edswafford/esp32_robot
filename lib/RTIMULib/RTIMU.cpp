@@ -27,7 +27,7 @@
 #include "RTFusion.h"
 #include "RTFusionKalman4.h"
 #include "RTFusionRTQF.h"
-#include "RTEeprom.h"
+
 
 //  this sets the learning rate for compass running average calculation
 

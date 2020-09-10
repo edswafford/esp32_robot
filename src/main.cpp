@@ -11,15 +11,6 @@
 
 #include "ros.h"
 #include "ros/time.h"
-<<<<<<< HEAD
-
-#include "neo_msgs/Velocities.h"    //header file for publishing velocities for odom
-#include "geometry_msgs/Twist.h"
-#include "neo_msgs/PID.h"
-#include "neo_msgs/Imu.h"
-#include "neo_msgs/ImuCal.h"
-#include "neo_msgs/ImuMode.h"
-=======
 #include "neo_msgs/Velocities.h"  //header file for publishing velocities for odom
 #include "geometry_msgs/Twist.h"  //header file for cmd_subscribing to "cmd_vel"
 #include "neo_msgs/PID.h"         //header file for pid server
@@ -27,7 +18,6 @@
 #include "neo_msgs/ImuCal.h"
 #include "neo_msgs/ImuCmd.h"
 #include "cal_imu.h"
->>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
 
 
 //#include "neo_base_config.h"
@@ -43,17 +33,6 @@
 //callback function prototypes
 void commandCallback(const geometry_msgs::Twist &cmd_msg);
 void PIDCallback(const neo_msgs::PID &pid);
-<<<<<<< HEAD
-void imuCallback(const neo_msgs::ImuMode &imu_mode);
-
-ros::NodeHandle nh;
-bool calibration_mode_ = false;
-
-//ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
-//ros::Subscriber<neo_msgs::PID> pid_sub("pid", PIDCallback);
-ros::Subscriber<neo_msgs::ImuMode> imu_mode_sub("pid", imuCallback);
-
-=======
 void imuCallback(const neo_msgs::ImuCmd &imu_mode);
 
 ros::NodeHandle nh;
@@ -64,7 +43,6 @@ int imu_status = 0;
 //ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
 //ros::Subscriber<neo_msgs::PID> pid_sub("pid", PIDCallback);
 ros::Subscriber<neo_msgs::ImuCmd> imu_mode_sub("imu_cmd", imuCallback);
->>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
 
 IMU imu;
 neo_msgs::Imu raw_imu_msg;
@@ -84,11 +62,7 @@ void setup()
 
   // nh.subscribe(pid_sub);
   //nh.subscribe(cmd_sub);
-<<<<<<< HEAD
-  nh.subscribe(imu_mode_sub);
-=======
     nh.subscribe(imu_mode_sub);
->>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
 
   // nh.advertise(raw_vel_pub);
   nh.advertise(raw_imu_pub);
@@ -98,10 +72,6 @@ void setup()
     nh.spinOnce();
   }
   nh.loginfo("CONNECTED to ROS");
-<<<<<<< HEAD
-=======
-
->>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
 
   // start communication with IMU
   if (!imu.init())
@@ -127,15 +97,10 @@ void loop()
     if (calibration_mode_)
     {
       // Calibrate IMU
-<<<<<<< HEAD
+    CalImu calImu(imu.getRTIMU(), imu.getSettings());
 
-
-=======
-      CalImu calImu(imu);
-      calImu.doCalibration();
 
      // cal_imu_pub.publish(&cal_imu_msg);
->>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
     }
     else
     {
@@ -160,11 +125,7 @@ void loop()
 }
 
 
-<<<<<<< HEAD
-void imuCallback(const neo_msgs::ImuMode &imu_mode)
-=======
 void imuCallback(const neo_msgs::ImuCmd &imu_mode)
->>>>>>> 9e4fdeb23d7a4a4f8a5450e08b276f5239e1a87d
 {
   calibration_mode_ = imu_mode.imu_mode;
 }

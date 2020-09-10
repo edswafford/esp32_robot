@@ -66,12 +66,10 @@
 
 #define RATE_TIMER_INTERVAL 2
 
+bool RTIMUSettings::init(CalibrationStorage *storage)
+{
+    _storage_ptr = storage;
 
-bool RTIMUSettings::init(){
-  if (!eeprom.init())
-    {
-        HAL_ERROR("Failed to initialize Calibration Storage memory.  Calibration values are not available");
-    }
     return loadSettings();
 }
 
@@ -86,8 +84,10 @@ void RTIMUSettings::setDefaults()
     m_I2CHumidityAddress = 0;
     m_compassCalValid = false;
     m_compassCalEllipsoidValid = false;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
             m_compassCalEllipsoidCorr[i][j] = 0;
         }
     }
@@ -100,8 +100,7 @@ void RTIMUSettings::setDefaults()
     m_accelCalValid = false;
     m_gyroBiasValid = false;
 
-
-        //  preset general defaults
+    //  preset general defaults
 
 #ifdef IC2_COMM
     m_busIsI2C = true;
@@ -348,69 +347,59 @@ void RTIMUSettings::setDefaults()
 #endif
 }
 
-
 bool RTIMUSettings::saveSettings()
 {
-    calData_.compassCalValid = m_compassCalValid;
-    calData_.compassCalEllipsoidValid = m_compassCalEllipsoidValid;
-    calData_.accelCalValid = m_accelCalValid;
-    calData_.gyroBiasValid = m_gyroBiasValid;
+    _storage_ptr->setCompassCalValid(m_compassCalValid);
+    _storage_ptr->setAccelCalValid(m_accelCalValid);
 
-    for(auto i=0; i<3; i++){
-        calData_.gyroBias[i] = m_gyroBias.data(i);
+    _storage_ptr->setCompassMax(m_compassCalMax.data(0), m_compassCalMax.data(1), m_compassCalMax.data(2));
+    _storage_ptr->setCompassMin(m_compassCalMin.data(0), m_compassCalMin.data(1), m_compassCalMin.data(2));
 
-        calData_.compassCalMax[i] = m_compassCalMax.data(i);
-        calData_.compassCalMin[i] = m_compassCalMin.data(i);
+    _storage_ptr->setAccelMax(m_accelCalMax.data(0), m_accelCalMax.data(1), m_accelCalMax.data(2));
+    _storage_ptr->setAccelMin(m_accelCalMin.data(0), m_accelCalMin.data(1), m_accelCalMin.data(2));
 
-        calData_.accelCalMax[i] = m_accelCalMax.data(i);
-        calData_.accelCalMin[i] = m_accelCalMin.data(i);
-
-        if(m_compassCalEllipsoidValid){
-            calData_.compassCalEllipsoidOffset[i] = m_compassCalEllipsoidOffset.data(i);
-            for(auto j=0; j<3; j++){
-                 calData_.compassCalEllipsoidCorr[i][j] = m_compassCalEllipsoidCorr[i][j];
-            }
-        }
-    }
-
-    return eeprom.write(&calData_);
+    return _storage_ptr->write();
 }
-
 
 bool RTIMUSettings::loadSettings()
 {
     setDefaults();
 
     // pick up existing calibration data
-    if (eeprom.read(&calData_))
+    m_compassCalValid = _storage_ptr->getCompassCalValid();
+    m_accelCalValid = _storage_ptr->getAccelCalValid();
+    if (m_compassCalValid)
     {
-        m_compassCalValid = calData_.compassCalValid;
-        m_compassCalEllipsoidValid = calData_.compassCalEllipsoidValid;
-        m_accelCalValid = calData_.accelCalValid;
-        m_gyroBiasValid = m_gyroBiasValid;
-        
-        for(auto i=0; i<3; i++){
-            m_gyroBias.setData(i,  calData_.gyroBias[i]);
+        for (auto i = 0; i < 3; i++)
+        {
 
-            m_compassCalMax.setData(i, calData_.compassCalMax[i]);
-            m_compassCalMin.setData(i, calData_.compassCalMin[i]);
-
-            m_accelCalMax.setData(i, calData_.accelCalMax[i]);
-            m_accelCalMin.setData(i, calData_.accelCalMin[i]);
-
-            if(m_compassCalEllipsoidValid){
-                m_compassCalEllipsoidOffset.setData(i, calData_.compassCalEllipsoidOffset[i]);
-                for(auto j=0; j<3; j++){
-                    m_compassCalEllipsoidCorr[i][j] = calData_.compassCalEllipsoidCorr[i][j];
-                }
-            }
+            m_compassCalMax.setData(i, _storage_ptr->getCompassMax(i));
+            m_compassCalMin.setData(i, _storage_ptr->getCompassMin(i));
         }
+
         HAL_INFO("Calbiration settings loaded\n");
         return true;
     }
-    else{
+    else
+    {
         HAL_ERROR("Failed to load calibration setting from EEPROM.");
     }
 
-    return false; 
+    if (m_accelCalValid)
+    {
+        for (auto i = 0; i < 3; i++)
+        {
+            m_accelCalMax.setData(i, _storage_ptr->getAccelMax(i));
+            m_accelCalMin.setData(i, _storage_ptr->getAccelMin(i));
+        }
+
+        HAL_INFO("Calbiration settings loaded\n");
+        return true;
+    }
+    else
+    {
+        HAL_ERROR("Failed to load calibration setting from EEPROM.");
+    }
+
+    return false;
 }
