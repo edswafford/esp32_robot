@@ -7,11 +7,7 @@
 #include "neo_msgs/ImuCal.h"
 #include "calibration_storage.h"
 
-#include "RTIMUSettings.h"
-#include "RTIMU.h"
-#include "RTIMUMagCal.h"
-#include "RTIMUAccelCal.h"
-#include "RTIMUMPU9250.h"
+enum CalibCmds {CAL_ACCEL, CAL_MAG, SAVE, END};
 
 class IMU
 {
@@ -54,18 +50,35 @@ public:
 */
     bool init()
     {
-        if(_storage.init() && _storage.read()) {
-            Serial.printf("Storage Calibration values are available\n");
-        }
-        else {
-            Serial.printf("Failed to initialize Calibration Storage memory.  Calibration values are not available\n");
+        int status = MPU9250::begin();
+        if (status > 0)
+        {
+            // setting the accelerometer full scale range to +/-8G
+            setAccelRange(MPU9250::ACCEL_RANGE_2G);
+            // setting the gyroscope full scale range to +/-250 deg/s
+            setGyroRange(MPU9250::GYRO_RANGE_250DPS);
+
+            setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_41HZ);
+            //setSrd(19);
         }
 
-        // Initialize Calibration
-        settings_.init(&_storage);
+    void fetch_imu_data(neo_msgs::Imu& raw_imu_msg);
 
-        rt_imu_ = new RTIMUMPU9250(settings_);
-        valid_ = rt_imu_->IMUInit();
+    void calibrate_accelerometer(neo_msgs::ImuCal& cal_imu_msg)
+    {
+        int status = MPU9250::calibrateAccel();
+        cal_imu_msg.imu_status = static_cast<int8_t>(status);
+        if (status > 0)
+        {
+            cal_imu_msg.max_acceleration.x = _axmax;
+            cal_imu_msg.max_acceleration.y = _aymax;
+            cal_imu_msg.max_acceleration.z = _azmax;
+
+            cal_imu_msg.min_acceleration.x = _axmin;
+            cal_imu_msg.min_acceleration.y = _aymin; 
+            cal_imu_msg.min_acceleration.z = _azmin;
+        }
+    }
 
         rt_imu_->setSlerpPower(0.02);
         rt_imu_->setGyroEnable(true);

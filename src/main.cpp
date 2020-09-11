@@ -28,9 +28,12 @@
 
 #include <ESP32Encoder.h>
 
-#define IMU_PUBLISH_RATE 50 //hz
+#define IMU_PUBLISH_RATE 20 //hz
+#define COMMAND_RATE 20     //hz
+#define DEBUG_RATE 5
 
 //callback function prototypes
+void imuCalStateCallback(const neo_msgs::ImuCalState &cmd_msg);
 void commandCallback(const geometry_msgs::Twist &cmd_msg);
 void PIDCallback(const neo_msgs::PID &pid);
 void imuCallback(const neo_msgs::ImuCmd &imu_mode);
@@ -42,7 +45,8 @@ int imu_status = 0;
 
 //ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
 //ros::Subscriber<neo_msgs::PID> pid_sub("pid", PIDCallback);
-ros::Subscriber<neo_msgs::ImuCmd> imu_mode_sub("imu_cmd", imuCallback);
+//ros::Subscriber<neo_msgs::ImuCmd> imu_mode_sub("imu_cmd", imuCallback);
+//short imu_cal_state = CalibCmds::END;
 
 IMU imu;
 neo_msgs::Imu raw_imu_msg;
@@ -50,6 +54,13 @@ ros::Publisher raw_imu_pub("raw_imu", &raw_imu_msg);
 
 neo_msgs::ImuCal cal_imu_msg;
 ros::Publisher cal_imu_pub("cal_imu", &cal_imu_msg);
+
+ros::Subscriber<neo_msgs::ImuCalState> imu_cal_state_sub("imu_cal_state", imuCalStateCallback);
+
+void imuCalStateCallback(const neo_msgs::ImuCalState &cmd)
+{
+  imu_cal_state = cmd.imu_state;
+}
 
 void setup()
 {
@@ -59,6 +70,7 @@ void setup()
   }
 
   nh.initSerialNode(&Serial2, 57600, SERIAL_8N1, RX2, TX2);
+  nh.subscribe(imu_cal_state_sub);
 
   // nh.subscribe(pid_sub);
   //nh.subscribe(cmd_sub);
@@ -94,14 +106,29 @@ void loop()
 
   if (imu.isValid())
   {
-    if (calibration_mode_)
+    if (imu_cal_state != CalibCmds::END)
     {
-      // Calibrate IMU
-    CalImu calImu(imu.getRTIMU(), imu.getSettings());
-    calImu.doCalibration();
-    calibration_mode_ = false;
+      // Calibrating IMU
+      switch (imu_cal_state)
+      {
+      case CalibCmds::CAL_ACCEL: 
+        nh.loginfo("Calling Accel Cal");
+        imu.calibrate_accelerometer(cal_imu_msg);
+         nh.loginfo("publishing cal_imu_msg");
+         cal_imu_pub.publish(&cal_imu_msg);
+         nh.loginfo("Done");
+        break;
+      case CalibCmds::CAL_MAG: 
+        
+        break;
 
-     // cal_imu_pub.publish(&cal_imu_msg);
+        case CalibCmds::SAVE: 
+        
+        break;
+
+      default:
+        break;
+      }
     }
     else
     {

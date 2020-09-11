@@ -13,22 +13,22 @@ namespace neo_msgs
   class ImuCal : public ros::Msg
   {
     public:
-      typedef geometry_msgs::Vector3 _acceleration_bias_type;
-      _acceleration_bias_type acceleration_bias;
-      typedef geometry_msgs::Vector3 _acceleration_scale_factor_type;
-      _acceleration_scale_factor_type acceleration_scale_factor;
-      typedef geometry_msgs::Vector3 _magnetic_field_bias_type;
-      _magnetic_field_bias_type magnetic_field_bias;
-      typedef geometry_msgs::Vector3 _magnetic_field_scale_factor_type;
-      _magnetic_field_scale_factor_type magnetic_field_scale_factor;
+      typedef geometry_msgs::Vector3 _min_acceleration_type;
+      _min_acceleration_type min_acceleration;
+      typedef geometry_msgs::Vector3 _max_acceleration_type;
+      _max_acceleration_type max_acceleration;
+      typedef geometry_msgs::Vector3 _min_magnetic_field_type;
+      _min_magnetic_field_type min_magnetic_field;
+      typedef geometry_msgs::Vector3 _max_magnetic_field_type;
+      _max_magnetic_field_type max_magnetic_field;
       typedef int8_t _imu_status_type;
       _imu_status_type imu_status;
 
     ImuCal():
-      acceleration_bias(),
-      acceleration_scale_factor(),
-      magnetic_field_bias(),
-      magnetic_field_scale_factor(),
+      min_acceleration(),
+      max_acceleration(),
+      min_magnetic_field(),
+      max_magnetic_field(),
       imu_status(0)
     {
     }
@@ -36,10 +36,10 @@ namespace neo_msgs
     virtual int serialize(unsigned char *outbuffer) const
     {
       int offset = 0;
-      offset += this->acceleration_bias.serialize(outbuffer + offset);
-      offset += this->acceleration_scale_factor.serialize(outbuffer + offset);
-      offset += this->magnetic_field_bias.serialize(outbuffer + offset);
-      offset += this->magnetic_field_scale_factor.serialize(outbuffer + offset);
+      offset += this->min_acceleration.serialize(outbuffer + offset);
+      offset += this->max_acceleration.serialize(outbuffer + offset);
+      offset += this->min_magnetic_field.serialize(outbuffer + offset);
+      offset += this->max_magnetic_field.serialize(outbuffer + offset);
       union {
         int8_t real;
         uint8_t base;
@@ -53,10 +53,10 @@ namespace neo_msgs
     virtual int deserialize(unsigned char *inbuffer)
     {
       int offset = 0;
-      offset += this->acceleration_bias.deserialize(inbuffer + offset);
-      offset += this->acceleration_scale_factor.deserialize(inbuffer + offset);
-      offset += this->magnetic_field_bias.deserialize(inbuffer + offset);
-      offset += this->magnetic_field_scale_factor.deserialize(inbuffer + offset);
+      offset += this->min_acceleration.deserialize(inbuffer + offset);
+      offset += this->max_acceleration.deserialize(inbuffer + offset);
+      offset += this->min_magnetic_field.deserialize(inbuffer + offset);
+      offset += this->max_magnetic_field.deserialize(inbuffer + offset);
       union {
         int8_t real;
         uint8_t base;
@@ -69,7 +69,7 @@ namespace neo_msgs
     }
 
     const char * getType(){ return "neo_msgs/ImuCal"; };
-    const char * getMD5(){ return "041daa81b02152b04acd7ab8e7324af6"; };
+    const char * getMD5(){ return "2678d2dd208c377a822a2197c815d8f1"; };
 
   };
 
