@@ -2,10 +2,10 @@
 #define _IMU_H_
 
 #include <MPU9250.h>
-
+#include <EEPROM.h>
 #include "neo_msgs/Imu.h"
 #include "neo_msgs/ImuCal.h"
-
+#include "calibration_storage.h"
 
 enum CalibCmds
 {
@@ -49,16 +49,75 @@ public:
                 return -11;
             }
         }
+        if (storage.init())
+        {
+            storage.read(&_calib_data);
+        }
+        else
+        {
+            _calib_data.compassCalValid = false;
+            _calib_data.accelCalValid = false;
+
+            _calib_data.compassBias[0] = 0.0f;
+            _calib_data.compassBias[1] = 0.0f;
+            _calib_data.compassBias[2] = 0.0f;
+            _calib_data.compassScaleFactor[0] = 1.0f;
+            _calib_data.compassScaleFactor[1] = 1.0f;
+            _calib_data.compassScaleFactor[2] = 1.0f;
+
+            _calib_data.accelBias[0] = 0.0f;
+            _calib_data.accelBias[1] = 0.0f;
+            _calib_data.accelBias[2] = 0.0f;
+            _calib_data.accelScaleFactor[0] = 1.0f;
+            _calib_data.accelScaleFactor[1] = 1.0f;
+            _calib_data.accelScaleFactor[2] = 1.0f;
+        }
+
+                // Initialize IMU
+        setMagCalX(_calib_data.compassBias[0], _calib_data.compassScaleFactor[0]);
+        setMagCalY(_calib_data.compassBias[1], _calib_data.compassScaleFactor[1]);
+        setMagCalZ(_calib_data.compassBias[2], _calib_data.compassScaleFactor[2]);
+
+        setAccelCalX(_calib_data.accelBias[0], _calib_data.accelScaleFactor[0]);
+        setAccelCalY(_calib_data.accelBias[1], _calib_data.accelScaleFactor[1]);
+        setAccelCalZ(_calib_data.accelBias[2], _calib_data.accelScaleFactor[2]);
 
         return status;
     }
-   
+    bool storeMagCalData(bool valid){
+        _calib_data.compassCalValid = valid;
+        
+        _calib_data.compassBias[0] = getMagBiasX_uT();
+        _calib_data.compassBias[1] = getMagBiasY_uT();
+        _calib_data.compassBias[2] = getMagBiasZ_uT();
+
+        _calib_data.compassScaleFactor[0] = getMagScaleFactorX();
+        _calib_data.compassScaleFactor[1] = getMagScaleFactorY();
+        _calib_data.compassScaleFactor[2] = getMagScaleFactorZ();
+
+        return storage.write(&_calib_data);
+    }
+
+   bool storeAccelCalData(bool valid){
+        _calib_data.accelCalValid = valid;
+        
+        _calib_data.accelBias[0] = getAccelBiasX_mss();
+        _calib_data.accelBias[1] = getAccelBiasY_mss();
+        _calib_data.accelBias[2] = getAccelBiasZ_mss();
+
+        _calib_data.accelScaleFactor[0] = getAccelScaleFactorX();
+        _calib_data.accelScaleFactor[1] = getAccelScaleFactorY();
+        _calib_data.accelScaleFactor[2] = getAccelScaleFactorZ();
+
+        return storage.write(&_calib_data);
+    }
 
     void fetch_imu_data(neo_msgs::Imu &raw_imu_msg);
 
 
 private:
-
+    CALLIB_DATA _calib_data;
+    CalibrationStorage storage;
 };
 
 #endif      //_IMU_H_
