@@ -197,6 +197,10 @@ int CalImu::calibrateMag()
     _hys = _avgs / _hys;
     _hzs = _avgs / _hzs;
 
+    _imu.setMagCalX(_hxb, _hxs);
+    _imu.setMagCalY(_hyb, _hys);
+    _imu.setMagCalZ(_hzb, _hzs);
+
     Serial.printf("\nSaving Compass Calibration data.\n\n");
     if (_imu.storeMagCalData(true))
     {
@@ -217,9 +221,7 @@ int CalImu::calibrateMag()
 
 int CalImu::calibrateAccel()
 {
-    float _ax;
-    float _ay;
-    float _az;
+
     uint64_t displayTimer;
     uint64_t now;
     char input;
@@ -421,17 +423,20 @@ int CalImu::calibrateAccel()
             _azb = (_azmin + _azmax) / 2.0f;
             _azs = G / ((abs(_azmin) + abs(_azmax)) / 2.0f);
         }
-     
-        Serial.printf("\nSaving  Accelerometer Calibration data.\n\n");
-    if (_imu.storeAccelCalData(true))
-    {
-        Serial.printf("EEPROM Storage Success\n");
-    }
-    else
-    {
-        Serial.printf("EEPROM Storage FAILED!\n");
-    }
 
+        _imu.setAccelCalX(_axb, _axs);
+        _imu.setAccelCalY(_ayb, _ays);
+        _imu.setAccelCalZ(_azb, _azs);
+
+        Serial.printf("\nSaving  Accelerometer Calibration data.\n\n");
+        if (_imu.storeAccelCalData(true))
+        {
+            Serial.printf("EEPROM Storage Success\n");
+        }
+        else
+        {
+            Serial.printf("EEPROM Storage FAILED!\n");
+        }
     }
     // set the range, bandwidth, and srd back to what they were
     if (_imu.setAccelRange(accelRange) < 0)
@@ -509,19 +514,19 @@ void CalImu::displayAccelMinMax()
     {
         Serial.printf("x - %s", accelEnables[0] ? "enabled" : "disabled");
         Serial.printf("\nMin x: %6.2f Max x: %6.2f\n", _axmin, _axmax);
-        Serial.printf("AVG x: %6.2f\n", _azbD);
+        Serial.printf("x: %6.2f\n", _ax);
     }
     else if (accelCurrentAxis == 1)
     {
         Serial.printf("y - %s", accelEnables[1] ? "enabled" : "disabled");
         Serial.printf("\nMin y: %6.2f Max y: %6.2f\n", _aymin, _aymax);
-        Serial.printf("AVG y: %6.2f\n", _aybD);
+        Serial.printf("y: %6.2f\n", _ay);
     }
     else if (accelCurrentAxis == 2)
     {
         Serial.printf("z - %s", accelEnables[2] ? "enabled" : "disabled");
         Serial.printf("\nMin z: %6.2f Max z: %6.2f\n", _azmin, _azmax);
-        Serial.printf("AVG z: %6.2f\n", _azbD);
+        Serial.printf("z: %6.2f\n", _az);
     }
 
     Serial.flush();

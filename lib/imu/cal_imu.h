@@ -46,6 +46,9 @@ private:
     double _axbD, _aybD, _azbD;
     float _axmax, _aymax, _azmax;
     float _axmin, _aymin, _azmin;
+    float _ax;
+    float _ay;
+    float _az;
     float _axb{0.0f};
     float _ayb{0.0f};
     float _azb{0.0f};
