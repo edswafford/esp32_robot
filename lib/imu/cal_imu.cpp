@@ -29,13 +29,16 @@ int CalImu::calibrateMag()
     unsigned long displayTimer;
     unsigned long now;
     char input = 0;
-    uint8_t srd = _imu.getSrd();
+    uint8_t srd = imu_.getSrd();
 
     // set the srd to 50Hz (sensors read every 20ms)
-    if (_imu.setSrd(19) < 0)
+    if (imu_.setSrd(19) < 0)
     {
         return -1;
     }
+    imu_.setMagCalX(hxb_, hxs_);
+    imu_.setMagCalY(hyb_, hys_);
+    imu_.setMagCalZ(hzb_, hzs_);
 
     bool done = false;
     while (!done)
@@ -52,84 +55,84 @@ int CalImu::calibrateMag()
         displayTimer = millis();
 
         // get a starting set of data
-        _imu.readSensor();
-        _hxmax = _imu.getMagX_uT();
-        _hxmin = _imu.getMagX_uT();
-        _hymax = _imu.getMagY_uT();
-        _hymin = _imu.getMagY_uT();
-        _hzmax = _imu.getMagZ_uT();
-        _hzmin = _imu.getMagZ_uT();
+        imu_.readSensor();
+        hxmax_ = imu_.getMagX_uT();
+        hxmin_ = imu_.getMagX_uT();
+        hymax_ = imu_.getMagY_uT();
+        hymin_ = imu_.getMagY_uT();
+        hzmax_ = imu_.getMagZ_uT();
+        hzmin_ = imu_.getMagZ_uT();
 
-        _counter = 0;
-        while (_counter < _maxCounts)
+        counter_ = 0;
+        while (counter_ < maxCounts_)
         {
-            _delta = 0.0f;
-            _framedelta = 0.0f;
-            _imu.readSensor();
-            _hxfilt = (_hxfilt * ((float)_coeff - 1) + (_imu.getMagX_uT() / _hxs + _hxb)) / ((float)_coeff);
-            _hyfilt = (_hyfilt * ((float)_coeff - 1) + (_imu.getMagY_uT() / _hys + _hyb)) / ((float)_coeff);
-            _hzfilt = (_hzfilt * ((float)_coeff - 1) + (_imu.getMagZ_uT() / _hzs + _hzb)) / ((float)_coeff);
-            if (_hxfilt > _hxmax)
+            delta_ = 0.0f;
+            framedelta_ = 0.0f;
+            imu_.readSensor();
+            hxfilt_ = (hxfilt_ * ((float)coeff_ - 1) + (imu_.getMagX_uT() / hxs_ + hxb_)) / ((float)coeff_);
+            hyfilt_ = (hyfilt_ * ((float)coeff_ - 1) + (imu_.getMagY_uT() / hys_ + hyb_)) / ((float)coeff_);
+            hzfilt_ = (hzfilt_ * ((float)coeff_ - 1) + (imu_.getMagZ_uT() / hzs_ + hzb_)) / ((float)coeff_);
+            if (hxfilt_ > hxmax_)
             {
-                _delta = _hxfilt - _hxmax;
-                _hxmax = _hxfilt;
+                delta_ = hxfilt_ - hxmax_;
+                hxmax_ = hxfilt_;
             }
-            if (_delta > _framedelta)
+            if (delta_ > framedelta_)
             {
-                _framedelta = _delta;
+                framedelta_ = delta_;
             }
-            if (_hyfilt > _hymax)
+            if (hyfilt_ > hymax_)
             {
-                _delta = _hyfilt - _hymax;
-                _hymax = _hyfilt;
+                delta_ = hyfilt_ - hymax_;
+                hymax_ = hyfilt_;
             }
-            if (_delta > _framedelta)
+            if (delta_ > framedelta_)
             {
-                _framedelta = _delta;
+                framedelta_ = delta_;
             }
-            if (_hzfilt > _hzmax)
+            if (hzfilt_ > hzmax_)
             {
-                _delta = _hzfilt - _hzmax;
-                _hzmax = _hzfilt;
+                delta_ = hzfilt_ - hzmax_;
+                hzmax_ = hzfilt_;
             }
-            if (_delta > _framedelta)
+            if (delta_ > framedelta_)
             {
-                _framedelta = _delta;
+                framedelta_ = delta_;
             }
-            if (_hxfilt < _hxmin)
+            if (hxfilt_ < hxmin_)
             {
-                _delta = abs(_hxfilt - _hxmin);
-                _hxmin = _hxfilt;
+                delta_ = abs(hxfilt_ - hxmin_);
+                hxmin_ = hxfilt_;
             }
-            if (_delta > _framedelta)
+            if (delta_ > framedelta_)
             {
-                _framedelta = _delta;
+                framedelta_ = delta_;
             }
-            if (_hyfilt < _hymin)
+            if (hyfilt_ < hymin_)
             {
-                _delta = abs(_hyfilt - _hymin);
-                _hymin = _hyfilt;
+                delta_ = abs(hyfilt_ - hymin_);
+                hymin_ = hyfilt_;
             }
-            if (_delta > _framedelta)
+            if (delta_ > framedelta_)
             {
-                _framedelta = _delta;
+                framedelta_ = delta_;
             }
-            if (_hzfilt < _hzmin)
+            if (hzfilt_ < hzmin_)
             {
-                _delta = abs(_hzfilt - _hzmin);
-                _hzmin = _hzfilt;
+                delta_ = abs(hzfilt_ - hzmin_);
+                hzmin_ = hzfilt_;
             }
-            if (_delta > _framedelta)
+            if (delta_ > framedelta_)
             {
-                _framedelta = _delta;
+                framedelta_ = delta_;
             }
-            if (_framedelta > _deltaThresh)
+            if (framedelta_ > deltaThresh_)
             {
-                _counter = 0;
+                counter_ = 0;
             }
             else
             {
-                _counter++;
+                counter_++;
             }
 
             now = millis();
@@ -184,25 +187,25 @@ int CalImu::calibrateMag()
         }
     }
     // find the magnetometer bias
-    _hxb = (_hxmax + _hxmin) / 2.0f;
-    _hyb = (_hymax + _hymin) / 2.0f;
-    _hzb = (_hzmax + _hzmin) / 2.0f;
+    hxb_ = (hxmax_ + hxmin_) / 2.0f;
+    hyb_ = (hymax_ + hymin_) / 2.0f;
+    hzb_ = (hzmax_ + hzmin_) / 2.0f;
 
     // find the magnetometer scale factor
-    _hxs = (_hxmax - _hxmin) / 2.0f;
-    _hys = (_hymax - _hymin) / 2.0f;
-    _hzs = (_hzmax - _hzmin) / 2.0f;
-    _avgs = (_hxs + _hys + _hzs) / 3.0f;
-    _hxs = _avgs / _hxs;
-    _hys = _avgs / _hys;
-    _hzs = _avgs / _hzs;
+    hxs_ = (hxmax_ - hxmin_) / 2.0f;
+    hys_ = (hymax_ - hymin_) / 2.0f;
+    hzs_ = (hzmax_ - hzmin_) / 2.0f;
+    avgs_ = (hxs_ + hys_ + hzs_) / 3.0f;
+    hxs_ = avgs_ / hxs_;
+    hys_ = avgs_ / hys_;
+    hzs_ = avgs_ / hzs_;
 
-    _imu.setMagCalX(_hxb, _hxs);
-    _imu.setMagCalY(_hyb, _hys);
-    _imu.setMagCalZ(_hzb, _hzs);
+    imu_.setMagCalX(hxb_, hxs_);
+    imu_.setMagCalY(hyb_, hys_);
+    imu_.setMagCalZ(hzb_, hzs_);
 
     Serial.printf("\nSaving Compass Calibration data.\n\n");
-    if (_imu.storeMagCalData(true))
+    if (imu_.storeMagCalData(true))
     {
         Serial.printf("EEPROM Storage Success\n");
     }
@@ -212,7 +215,7 @@ int CalImu::calibrateMag()
     }
 
     // set the srd back to what it was
-    if (_imu.setSrd(srd) < 0)
+    if (imu_.setSrd(srd) < 0)
     {
         return -2;
     }
@@ -227,22 +230,22 @@ int CalImu::calibrateAccel()
     char input;
 
     // set the range, bandwidth, and srd
-    IMU::AccelRange accelRange = _imu.getAccelRange();
-    if (_imu.setAccelRange(_imu.ACCEL_RANGE_2G) < 0)
+    IMU::AccelRange accelRange = imu_.getAccelRange();
+    if (imu_.setAccelRange(imu_.ACCEL_RANGE_2G) < 0)
     {
         return -1;
     }
-    IMU::DlpfBandwidth bandwidth = _imu.getDlpfBandwidth();
-    if (_imu.setDlpfBandwidth(_imu.DLPF_BANDWIDTH_20HZ) < 0)
+    IMU::DlpfBandwidth bandwidth = imu_.getDlpfBandwidth();
+    if (imu_.setDlpfBandwidth(imu_.DLPF_BANDWIDTH_20HZ) < 0)
     {
-        _imu.setAccelRange(accelRange);
+        imu_.setAccelRange(accelRange);
         return -2;
     }
-    uint8_t srd = _imu.getSrd();
-    if (_imu.setSrd(19) < 0)
+    uint8_t srd = imu_.getSrd();
+    if (imu_.setSrd(19) < 0)
     {
-        _imu.setAccelRange(accelRange);
-        _imu.setDlpfBandwidth(bandwidth);
+        imu_.setAccelRange(accelRange);
+        imu_.setDlpfBandwidth(bandwidth);
         return -3;
     }
 
@@ -265,89 +268,96 @@ int CalImu::calibrateAccel()
     Serial.printf("\nPress any key to start...");
     get_char();
 
-    accelCurrentAxis = 0;
+    resetAccel();
 
     for (int i = 0; i < 3; i++)
     {
-        accelEnables[i] = false;
+        accelEnables_[i] = false;
     }
     displayTimer = millis();
+
+    imu_.setAccelCalX(axb_, axs_);
+    imu_.setAccelCalY(ayb_, ays_);
+    imu_.setAccelCalZ(azb_, azs_);
 
     bool done = false;
     bool save_accelCal = false;
     while (!done)
     {
         int sampleCount = 0;
-        _axbD = 0;
-        _aybD = 0;
-        _azbD = 0;
-        previousAccelAxis = accelCurrentAxis;
+        axbD_ = 0;
+        aybD_ = 0;
+        azbD_ = 0;
+        previousAccelAxis_ = accelCurrentAxis_;
 
-        while (!done && (previousAccelAxis == accelCurrentAxis))
+        while (!done && (previousAccelAxis_ == accelCurrentAxis_))
         {
-            _imu.readSensor();
+            imu_.readSensor();
 
-            _ax = _imu.getAccelX_mss();
-            _ay = _imu.getAccelY_mss();
-            _az = _imu.getAccelZ_mss();
+            ax_ = imu_.getAccelX_mss();
+            ay_ = imu_.getAccelY_mss();
+            az_ = imu_.getAccelZ_mss();
 
-            if (accelCurrentAxis == 0)
+            if (accelCurrentAxis_ == 0)
             {
-                if (accelEnables[0])
+                if (accelEnables_[0])
                 {
                     sampleCount += 1;
-                    _axbD += (_ax / _axs + _axb) / ((double)_numSamples);
-                    if (sampleCount == _numSamples)
+                    axbD_ += (ax_ / axs_ + axb_) / ((double)numSamples_);
+                    if (sampleCount == numSamples_)
                     {
                         sampleCount = 0;
-                        if (_axbD > 9.0f)
+                        if (axbD_ > 9.0f && axbD_ > axmax_)
                         {
-                            _axmax = (float)_axbD;
+                            axmax_ = (float)axbD_;
                         }
-                        if (_axbD < -9.0f)
+                        if (axbD_ < -9.0f && axbD_ < axmin_)
                         {
-                            _axmin = (float)_axbD;
+                            axmin_ = (float)axbD_;
                         }
+                        axbD_ = 0;
                     }
                 }
             }
-            else if (accelCurrentAxis == 1)
+            else if (accelCurrentAxis_ == 1)
             {
-                if (accelEnables[0])
+                if (accelEnables_[0])
                 {
                     sampleCount += 1;
-                    _aybD += (_ay / _ays + _ayb) / ((double)_numSamples);
-                    if (sampleCount == _numSamples)
+                    aybD_ += (ay_ / ays_ + ayb_) / ((double)numSamples_);
+                    if (sampleCount == numSamples_)
                     {
                         sampleCount = 0;
-                        if (_aybD > 9.0f)
+                        if (aybD_ > 9.0f && aybD_ > aymax_)
                         {
-                            _aymax = (float)_aybD;
+                            aymax_ = (float)aybD_;
                         }
-                        if (_aybD < -9.0f)
+                        if (aybD_ < -9.0f && aybD_ < aymin_)
                         {
-                            _aymin = (float)_aybD;
+                            aymin_ = (float)aybD_;
                         }
+                        aybD_ = 0.0;
                     }
                 }
             }
             else
             {
-                if (accelEnables[0])
+                if (accelEnables_[0])
                 {
                     sampleCount += 1;
-                    _azbD += (_az / _azs + _azb) / ((double)_numSamples);
-                    if (sampleCount == _numSamples)
+                    azbD_ += (az_ / azs_ + azb_) / ((double)numSamples_);
+                    if (sampleCount == numSamples_)
                     {
                         sampleCount = 0;
-                        if (_azbD > 9.0f)
+                        if (azbD_ > 9.0f && azbD_ > azmax_)
                         {
-                            _azmax = (float)_azbD;
+                            azmax_ = (float)azbD_;
                         }
-                        if (_azbD < -9.0f)
+                        if (azbD_ < -9.0f && azbD_ < azmin_)
                         {
-                            _azmin = (float)_azbD;
+                            azmin_ = (float)azbD_;
                         }
+                        azbD_ = 0;
                     }
                 }
             }
@@ -364,31 +374,22 @@ int CalImu::calibrateAccel()
                 switch (input)
                 {
                 case 'e':
-                    accelEnables[accelCurrentAxis] = true;
+                    accelEnables_[accelCurrentAxis_] = true;
                     break;
 
                 case 'd':
-                    accelEnables[accelCurrentAxis] = false;
+                    accelEnables_[accelCurrentAxis_] = false;
                     break;
 
                 case 'r':
-                    accelCurrentAxis = 0;
-                    accelEnables[0] = false;
-                    accelEnables[1] = false;
-                    accelEnables[2] = false;
                     sampleCount = 0;
-                    _axbD = 0;
-                    _aybD = 0;
-                    _azbD = 0;
-                    _axmax = _axmin = 0.0f;
-                    _aymax = _aymin = 0.0f;
-                    _azmax = _azmin = 0.0f;
+                    resetAccel();
                     break;
 
                 case ' ':
-                    if (++accelCurrentAxis == 3)
+                    if (++accelCurrentAxis_ == 3)
                     {
-                        accelCurrentAxis = 0;
+                        accelCurrentAxis_ = 0;
                     }
                     break;
 
@@ -408,28 +409,28 @@ int CalImu::calibrateAccel()
     if (save_accelCal)
     {
         // find bias and scale factor
-        if ((abs(_axmin) > 9.0f) && (abs(_axmax) > 9.0f))
+        if ((abs(axmin_) > 9.0f) && (abs(axmax_) > 9.0f))
         {
-            _axb = (_axmin + _axmax) / 2.0f;
-            _axs = G / ((abs(_axmin) + abs(_axmax)) / 2.0f);
+            axb_ = (axmin_ + axmax_) / 2.0f;
+            axs_ = G_ / ((abs(axmin_) + abs(axmax_)) / 2.0f);
         }
-        if ((abs(_aymin) > 9.0f) && (abs(_aymax) > 9.0f))
+        if ((abs(aymin_) > 9.0f) && (abs(aymax_) > 9.0f))
         {
-            _ayb = (_aymin + _aymax) / 2.0f;
-            _ays = G / ((abs(_aymin) + abs(_aymax)) / 2.0f);
+            ayb_ = (aymin_ + aymax_) / 2.0f;
+            ays_ = G_ / ((abs(aymin_) + abs(aymax_)) / 2.0f);
         }
-        if ((abs(_azmin) > 9.0f) && (abs(_azmax) > 9.0f))
+        if ((abs(azmin_) > 9.0f) && (abs(azmax_) > 9.0f))
         {
-            _azb = (_azmin + _azmax) / 2.0f;
-            _azs = G / ((abs(_azmin) + abs(_azmax)) / 2.0f);
+            azb_ = (azmin_ + azmax_) / 2.0f;
+            azs_ = G_ / ((abs(azmin_) + abs(azmax_)) / 2.0f);
         }
 
-        _imu.setAccelCalX(_axb, _axs);
-        _imu.setAccelCalY(_ayb, _ays);
-        _imu.setAccelCalZ(_azb, _azs);
+        imu_.setAccelCalX(axb_, axs_);
+        imu_.setAccelCalY(ayb_, ays_);
+        imu_.setAccelCalZ(azb_, azs_);
 
         Serial.printf("\nSaving  Accelerometer Calibration data.\n\n");
-        if (_imu.storeAccelCalData(true))
+        if (imu_.storeAccelCalData(true))
         {
             Serial.printf("EEPROM Storage Success\n");
         }
@@ -439,20 +440,34 @@ int CalImu::calibrateAccel()
         }
     }
     // set the range, bandwidth, and srd back to what they were
-    if (_imu.setAccelRange(accelRange) < 0)
+    if (imu_.setAccelRange(accelRange) < 0)
     {
         return -4;
     }
-    if (_imu.setDlpfBandwidth(bandwidth) < 0)
+    if (imu_.setDlpfBandwidth(bandwidth) < 0)
     {
         return -5;
     }
-    if (_imu.setSrd(srd) < 0)
+    if (imu_.setSrd(srd) < 0)
     {
         return -6;
     }
     return 1;
 }
+
+void CalImu::resetAccel()
+    {
+        accelCurrentAxis_ = 0;
+        accelEnables_[0] = false;
+        accelEnables_[1] = false;
+        accelEnables_[2] = false;
+        axbD_ = 0;
+        aybD_ = 0;
+        azbD_ = 0;
+        axmax_ = axmin_ = 0.0f;
+        aymax_ = aymin_ = 0.0f;
+        azmax_ = azmin_ = 0.0f;
+    }
 
 char CalImu::get_char()
 {
@@ -487,20 +502,20 @@ void CalImu::displayMenu()
 
 void CalImu::displayMagMinMax()
 {
-    if (_hxmin != _prev_hxmin || _hxmax != _prev_hxmax ||
-        _hymin != _prev_hymin || _hymax != _prev_hymax ||
-        _hzmin != _prev_hzmin || _hzmax != _prev_hzmax)
+    if (hxmin_ != prev_hxmin_ || hxmax_ != prev_hxmax_ ||
+        hymin_ != prev_hymin_ || hymax_ != prev_hymax_ ||
+        hzmin_ != prev_hzmin_ || hzmax_ != prev_hzmax_)
     {
-        _prev_hxmin = _hxmin;
-        _prev_hxmax = _hxmax;
-        _prev_hymin = _hymin;
-        _prev_hymax = _hymax;
-        _prev_hzmin = _hzmin;
-        _prev_hzmax = _hzmax;
+        prev_hxmin_ = hxmin_;
+        prev_hxmax_ = hxmax_;
+        prev_hymin_ = hymin_;
+        prev_hymax_ = hymax_;
+        prev_hzmin_ = hzmin_;
+        prev_hzmax_ = hzmax_;
 
         Serial.printf("\n\n");
-        Serial.printf("Min x: %6.2f  min y: %6.2f  min z: %6.2f\n", _hxmin, _hymin, _hzmin);
-        Serial.printf("Max x: %6.2f  max y: %6.2f  max z: %6.2f\n", _hxmax, _hymax, _hzmax);
+        Serial.printf("Min x: %6.2f  min y: %6.2f  min z: %6.2f\n", hxmin_, hymin_, hzmin_);
+        Serial.printf("Max x: %6.2f  max y: %6.2f  max z: %6.2f\n", hxmax_, hymax_, hzmax_);
         Serial.flush();
     }
 }
@@ -510,23 +525,23 @@ void CalImu::displayAccelMinMax()
     Serial.printf("\n\n");
 
     Serial.printf("Current axis: ");
-    if (accelCurrentAxis == 0)
+    if (accelCurrentAxis_ == 0)
     {
-        Serial.printf("x - %s", accelEnables[0] ? "enabled" : "disabled");
-        Serial.printf("\nMin x: %6.2f Max x: %6.2f\n", _axmin, _axmax);
-        Serial.printf("x: %6.2f\n", _ax);
+        Serial.printf("x - %s", accelEnables_[0] ? "enabled" : "disabled");
+        Serial.printf("\nMin x: %6.2f Max x: %6.2f\n", axmin_, axmax_);
+        Serial.printf("x: %6.2f\n", ax_);
     }
-    else if (accelCurrentAxis == 1)
+    else if (accelCurrentAxis_ == 1)
     {
-        Serial.printf("y - %s", accelEnables[1] ? "enabled" : "disabled");
-        Serial.printf("\nMin y: %6.2f Max y: %6.2f\n", _aymin, _aymax);
-        Serial.printf("y: %6.2f\n", _ay);
+        Serial.printf("y - %s", accelEnables_[1] ? "enabled" : "disabled");
+        Serial.printf("\nMin y: %6.2f Max y: %6.2f\n", aymin_, aymax_);
+        Serial.printf("y: %6.2f\n", ay_);
     }
-    else if (accelCurrentAxis == 2)
+    else if (accelCurrentAxis_ == 2)
     {
-        Serial.printf("z - %s", accelEnables[2] ? "enabled" : "disabled");
-        Serial.printf("\nMin z: %6.2f Max z: %6.2f\n", _azmin, _azmax);
-        Serial.printf("z: %6.2f\n", _az);
+        Serial.printf("z - %s", accelEnables_[2] ? "enabled" : "disabled");
+        Serial.printf("\nMin z: %6.2f Max z: %6.2f\n", azmin_, azmax_);
+        Serial.printf("z: %6.2f\n", az_);
     }
 
     Serial.flush();

@@ -7,57 +7,57 @@
 class CalImu
 {
 public:
-    CalImu(IMU &imu) : _imu(imu) {}
+    CalImu(IMU &imu) : imu_(imu) {}
     CalImu() = delete;
 
     void doCalibration();
 
 private:
-    IMU &_imu;
-    const float G = 9.807f;
+    IMU &imu_;
+    const float G_ = 9.807f;
 
     // magnetometer bias and scale factor estimation
-    uint16_t _maxCounts{1000};
-    float _deltaThresh{0.3f};
-    uint8_t _coeff{8};
-    uint16_t _counter;
-    float _framedelta, _delta;
-    float _hxfilt, _hyfilt, _hzfilt;
-    float _hxmax, _hymax, _hzmax;
-    float _hxmin, _hymin, _hzmin;
-    float _hxb{0.0};
-    float _hyb{0.0};
-    float _hzb{0.0};
-    float _hxs{1.0f};
-    float _hys{1.0f};
-    float _hzs{1.0f};
-    float _avgs;
+    uint16_t maxCounts_{1000};
+    float deltaThresh_{0.3f};
+    uint8_t coeff_{8};
+    uint16_t counter_;
+    float framedelta_, delta_;
+    float hxfilt_, hyfilt_, hzfilt_;
+    float hxmax_, hymax_, hzmax_;
+    float hxmin_, hymin_, hzmin_;
+    float hxb_{0.0};
+    float hyb_{0.0};
+    float hzb_{0.0};
+    float hxs_{1.0f};
+    float hys_{1.0f};
+    float hzs_{1.0f};
+    float avgs_;
 
-    float _prev_hxmin{0.0};
-    float _prev_hxmax{0.0};
-    float _prev_hymin{0.0};
-    float _prev_hymax{0.0};
-    float _prev_hzmin{0.0};
-    float _prev_hzmax{0.0};
+    float prev_hxmin_{0.0};
+    float prev_hxmax_{0.0};
+    float prev_hymin_{0.0};
+    float prev_hymax_{0.0};
+    float prev_hzmin_{0.0};
+    float prev_hzmax_{0.0};
 
     // gyro bias estimation
-    size_t _numSamples{100};
+    size_t numSamples_{100};
     // accel bias and scale factor estimation
-    double _axbD, _aybD, _azbD;
-    float _axmax, _aymax, _azmax;
-    float _axmin, _aymin, _azmin;
-    float _ax;
-    float _ay;
-    float _az;
-    float _axb{0.0f};
-    float _ayb{0.0f};
-    float _azb{0.0f};
-    float _axs{1.0f};
-    float _ays{1.0f};
-    float _azs{1.0f};
-    bool accelEnables[3];
-    int accelCurrentAxis;
-    int previousAccelAxis;
+    double axbD_, aybD_, azbD_;
+    float axmax_, aymax_, azmax_;
+    float axmin_, aymin_, azmin_;
+    float ax_;
+    float ay_;
+    float az_;
+    float axb_{0.0f};
+    float ayb_{0.0f};
+    float azb_{0.0f};
+    float axs_{1.0f};
+    float ays_{1.0f};
+    float azs_{1.0f};
+    bool accelEnables_[3];
+    int accelCurrentAxis_;
+    int previousAccelAxis_;
 
     int calibrateMag();
     int calibrateAccel();
@@ -67,6 +67,8 @@ private:
     void displayMenu();
     void displayMagMinMax();
     void displayAccelMinMax();
+    void resetAccel();
+
 };
 
 #endif // _CAL_IMU_H_
