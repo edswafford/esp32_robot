@@ -1,0 +1,95 @@
+
+html {
+    font-family: Arial;
+    display: inline-block;
+    margin: 0px auto;
+    text-align: center;
+}
+h1 {
+    color: #0F3376;
+    padding: 2vh;
+}
+p {
+    font-size: 1.5rem;
+}
+button {
+    font-size: 20px;
+    padding: 10px 30px;
+    border-radius: 10px;
+    margin: 8px;
+}
+
+input {
+    font-size: 20px;
+}
+
+#speed-title{
+    display: inline-block;
+    overflow: hidden;
+}
+.speed-text-wrap {
+    padding-top: 40px;
+}
+
+.range {
+    width: 100%;
+}
+
+.steering-text-wrap {
+    display: inline-block;
+}
+#steering-title{
+    display: inline-block;
+    overflow: hidden;
+}
+#center-speed{
+    display: inline-block;
+    padding-left: 100px;
+    overflow: hidden;
+}
+#center-steering{
+    display: inline-block;
+    padding-left: 100px;
+    overflow: hidden;
+}
+.speed-range-wrap {
+    position: relative;
+    margin: 0 auto 3rem;
+    width: 400px;
+}
+.steering-range-wrap {
+    position: relative;
+    margin: 0 auto 3rem;
+    width: 400px;
+}
+.bubble {
+    background: red;
+    color: white;
+    padding: 8px 12px;
+    position: absolute;
+    border-radius: 4px;
+    left: 50%;
+    transform: translate(-50%, -150%);
+}
+.bubble::after {
+    content: "";
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: red;
+    bottom: -3px;
+    left: 50%;
+}
+
+.button {
+    display: inline-block;
+    background-color: #f44336;
+    border: none;
+    border-radius: 40px;
+    color: white;
+    padding: 16px 40px;
+    text-decoration: none;
+    font-size: 30px;
+    margin: 2px;
+    cursor: pointer;
+}

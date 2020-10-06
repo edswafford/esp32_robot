@@ -16,11 +16,11 @@ enum CalibCmds
 class IMU : public MPU9250
 {
 public:
-    IMU() : MPU9250(Wire, 0x68){ }
+    IMU() : MPU9250(Wire, 0x68) {}
 
     int getSrd() { return _srd; }
-    IMU::AccelRange getAccelRange(){return _accelRange;}
-    IMU::DlpfBandwidth getDlpfBandwidth() {return _bandwidth;}
+    IMU::AccelRange getAccelRange() { return _accelRange; }
+    IMU::DlpfBandwidth getDlpfBandwidth() { return _bandwidth; }
 
     int begin()
     {
@@ -49,11 +49,7 @@ public:
                 return -11;
             }
         }
-        if (storage.init())
-        {
-            storage.read(&_calib_data);
-        }
-        else
+        if (!storage.read(&_calib_data))
         {
             _calib_data.compassCalValid = false;
             _calib_data.accelCalValid = false;
@@ -71,9 +67,11 @@ public:
             _calib_data.accelScaleFactor[0] = 1.0f;
             _calib_data.accelScaleFactor[1] = 1.0f;
             _calib_data.accelScaleFactor[2] = 1.0f;
+
+            status = -12;
         }
 
-                // Initialize IMU
+        // Initialize IMU
         setMagCalX(_calib_data.compassBias[0], _calib_data.compassScaleFactor[0]);
         setMagCalY(_calib_data.compassBias[1], _calib_data.compassScaleFactor[1]);
         setMagCalZ(_calib_data.compassBias[2], _calib_data.compassScaleFactor[2]);
@@ -82,11 +80,13 @@ public:
         setAccelCalY(_calib_data.accelBias[1], _calib_data.accelScaleFactor[1]);
         setAccelCalZ(_calib_data.accelBias[2], _calib_data.accelScaleFactor[2]);
 
+        printImuData();
         return status;
     }
-    bool storeMagCalData(bool valid){
+    bool storeMagCalData(bool valid)
+    {
         _calib_data.compassCalValid = valid;
-        
+
         _calib_data.compassBias[0] = getMagBiasX_uT();
         _calib_data.compassBias[1] = getMagBiasY_uT();
         _calib_data.compassBias[2] = getMagBiasZ_uT();
@@ -98,9 +98,10 @@ public:
         return storage.write(&_calib_data);
     }
 
-   bool storeAccelCalData(bool valid){
+    bool storeAccelCalData(bool valid)
+    {
         _calib_data.accelCalValid = valid;
-        
+
         _calib_data.accelBias[0] = getAccelBiasX_mss();
         _calib_data.accelBias[1] = getAccelBiasY_mss();
         _calib_data.accelBias[2] = getAccelBiasZ_mss();
@@ -109,15 +110,26 @@ public:
         _calib_data.accelScaleFactor[1] = getAccelScaleFactorY();
         _calib_data.accelScaleFactor[2] = getAccelScaleFactorZ();
 
+        printImuData();
         return storage.write(&_calib_data);
     }
 
+    void printImuData()
+    {
+        Serial.printf("validL:%d\n", _calib_data.validL);
+        Serial.printf("validH:%d\n", _calib_data.validH);
+        Serial.printf("compassCalValid:%d\n", _calib_data.compassCalValid);
+        Serial.printf("accelCalValid:%d\n", _calib_data.accelCalValid);
+        Serial.printf("compassBias:%f %f %f\n", _calib_data.compassBias[0], _calib_data.compassBias[1], _calib_data.compassBias[2]);
+        Serial.printf("compassScaleFactor:%f %f %f\n", _calib_data.compassScaleFactor[0], _calib_data.compassScaleFactor[1], _calib_data.compassScaleFactor[2]);
+        Serial.printf("accelBias:%f %f %f\n", _calib_data.accelBias[0], _calib_data.accelBias[1], _calib_data.accelBias[2]);
+        Serial.printf("accelScaleFactor:%f %f %f\n", _calib_data.accelScaleFactor[0], _calib_data.accelScaleFactor[1], _calib_data.accelScaleFactor[2]);
+    }
     void fetch_imu_data(neo_msgs::Imu &raw_imu_msg);
-
 
 private:
     CALLIB_DATA _calib_data;
     CalibrationStorage storage;
 };
 
-#endif      //_IMU_H_
+#endif //_IMU_H_

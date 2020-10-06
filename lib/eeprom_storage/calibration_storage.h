@@ -23,11 +23,6 @@ typedef struct
 class CalibrationStorage{
 
   public:
-  
-  bool init();
-
-  //  erases any current data in the EEPROM
-  bool erase();
 
   //  writes new data to the EEPROM
   bool write(CALLIB_DATA * calData);

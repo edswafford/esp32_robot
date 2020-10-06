@@ -315,13 +315,14 @@ int CalImu::calibrateAccel()
                         {
                             axmin_ = (float)axbD_;
                         }
+                        Serial.printf("axbD_:%6.2f\n", axbD_);
                         axbD_ = 0;
                     }
                 }
             }
             else if (accelCurrentAxis_ == 1)
             {
-                if (accelEnables_[0])
+                if (accelEnables_[1])
                 {
                     sampleCount += 1;
                     aybD_ += (ay_ / ays_ + ayb_) / ((double)numSamples_);
@@ -336,18 +337,20 @@ int CalImu::calibrateAccel()
                         {
                             aymin_ = (float)aybD_;
                         }
+                        Serial.printf("aybD_:%6.2f\n", aybD_);
                         aybD_ = 0.0;
                     }
                 }
             }
             else
             {
-                if (accelEnables_[0])
+                if (accelEnables_[2])
                 {
                     sampleCount += 1;
                     azbD_ += (az_ / azs_ + azb_) / ((double)numSamples_);
                     if (sampleCount == numSamples_)
                     {
+
                         sampleCount = 0;
                         if (azbD_ > 9.0f && azbD_ > azmax_)
                         {
@@ -357,6 +360,7 @@ int CalImu::calibrateAccel()
                         {
                             azmin_ = (float)azbD_;
                         }
+                        Serial.printf("azbD_:%6.2f\n", azbD_);
                         azbD_ = 0;
                     }
                 }

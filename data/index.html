@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>NEO</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="data:,">
+        <link rel="stylesheet" type="text/css" href="style.css">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    </head>
+
+    <body>
+        <h1>NEO</h1>
+        <p><button onclick="EmergencyStop()" id="stopButton" disabled style="background-color: inactivecaption" >STOPPED</button></p>
+        <div>
+            <button onclick = "OpenWebsocket()" id = "connectButton">CONNECT</button>
+            <button onclick = "CloseWebsocket()" disabled id = "disconnectButton">DISCONNECT</button>
+        </div>
+        <div style="padding: 20px">IP: <b id='esp32-ip'>%ESP32_IP%</b></div>
+
+
+        <!-- SPEED -->
+        <div class="speed-text-wrap">
+            <div style="padding-bottom: 60px">
+                <div id="speed-title"><p>Speed</p></div>
+                <div id="center-speed"><button onclick="resetSpeed()">Center</button></div>
+            </div>
+            <div class="speed-range-wrap">
+                <output class="bubble"></output>
+                <input type="range" class="range" id = "speed-input-range" min="-100" max="100">
+
+            </div>
+        </div>
+
+
+        <!-- STEERING -->
+        <div class="steering-text-wrap">
+            <div style="padding-bottom: 60px">
+                <div id="steering-title"><p>Steering</p></div>
+                <div id="center-steering"><button onclick="resetSteering()">Center</button></div>
+            </div>
+            <div class="steering-range-wrap">
+                <output class="bubble"></output>
+                <input type="range" class="range" id = "steering-input-range" min="-100" max="100">
+
+            </div>
+        </div>
+
+        <script src="controls.js"></script> 
+    </body>
+</html>

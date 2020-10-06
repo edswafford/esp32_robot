@@ -1,65 +1,63 @@
 #include "calibration_storage.h"
+#include <SPIFFS.h>
 
-#include <EEPROM.h>
-
-bool CalibrationStorage::init()
-{
-
-  // initialize EEPROM with predefined size
-  _valid = EEPROM.begin(_length);
-  return _valid;
-}
-
-bool CalibrationStorage::erase()
-{
-  if (_valid)
-  {
-    EEPROM.write(0, 0); // just destroy the valid byte
-  }
-  EEPROM.commit();
-  return _valid;
-}
 
 bool CalibrationStorage::write(CALLIB_DATA *calData)
 {
-  if (_valid)
+  File cal = SPIFFS.open("/imu_calibration.bin", FILE_WRITE);
+  if (SPIFFS.exists("/imu_calibration.bin"))
   {
     byte *ptr = (byte *)calData;
 
     calData->validL = CALLIB_DATA_VALID_LOW;
     calData->validH = CALLIB_DATA_VALID_HIGH;
 
-    for (byte i = 0; i < _length; i++){
-      EEPROM.write(i, *ptr++);
+    for (byte i = 0; i < _length; i++)
+    {
+      cal.write(*ptr++);
     }
-    EEPROM.commit();
+    cal.close();
 
     // Validate
     ptr = (byte *)calData;
-    for (byte i = 0; i < _length; i++){
-      if(*ptr++ != EEPROM.read(i)) {
+    File cal = SPIFFS.open("/imu_calibration.bin");
+    for (byte i = 0; i < _length; i++)
+    {
+      Serial.println(*ptr);
+      if (*ptr++ != cal.read())
+      {
         return false;
       }
     }
   }
-  return _valid;
+  else {
+    return false;
+  }
+  return true;
 }
 
 bool CalibrationStorage::read(CALLIB_DATA *calData)
 {
-  if (_valid)
+  if (SPIFFS.exists("/imu_calibration.bin"))
   {
+    File cal = SPIFFS.open("/imu_calibration.bin");
     byte *ptr = (byte *)calData;
+    for (byte i = 0; i < _length; i++)
+    {
+      *ptr++ = cal.read();
+    }
 
-    if ((EEPROM.read(0) != CALLIB_DATA_VALID_LOW) ||
-        (EEPROM.read(1) != CALLIB_DATA_VALID_HIGH))
+    if ((calData->validL != CALLIB_DATA_VALID_LOW) ||
+        (calData->validH != CALLIB_DATA_VALID_HIGH))
     {
       return false; // invalid data
     }
-
-    for (byte i = 0; i < _length; i++){
-      *ptr++ = EEPROM.read(i);
-    }
+    Serial.printf("Read IMU storage is valid\n");
   }
-  return _valid;
+  else {
+    Serial.printf("Read IMU storage is INVALID!\n");
+    return false;
+  }
+
+  return true;
 }
