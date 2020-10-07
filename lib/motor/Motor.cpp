@@ -21,6 +21,13 @@ Controller::Controller(int pwm_channel, int pwm_pin, int motor_pinA, int motor_p
 
 void Controller::spin(int pwm)
 {
+    int scaled_pwm = HALF_DUTY_CYCLE + (abs(pwm) / 2);
+
+    if (scaled_pwm > MAX_DUTY_CYCLE)
+    {
+        scaled_pwm = MAX_DUTY_CYCLE;
+    }
+
     if (pwm > 0)
     {
         digitalWrite(motor_pinA_, LOW);
@@ -28,10 +35,21 @@ void Controller::spin(int pwm)
     }
     else if (pwm < 0)
     {
-
         digitalWrite(motor_pinA_, HIGH);
         digitalWrite(motor_pinB_, LOW);
     }
-    
-    ledcWrite(pwm_channel_,  abs(pwm));
+    else
+    {
+        // braking
+        if (previous_pwm_ == 0)
+        {
+            ledcWrite(pwm_channel_, 0);
+            previous_pwm_ = pwm;
+            return;
+        }
+    }
+    //Serial.printf("scaled_pwm %d\n", scaled_pwm);
+
+    ledcWrite(pwm_channel_, scaled_pwm);
+    previous_pwm_ = pwm;
 }
