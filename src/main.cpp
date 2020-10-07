@@ -275,7 +275,7 @@ void commandCallback(const geometry_msgs::Twist &cmd_msg)
 
 void moveBase()
 {
-  char buffer[128];
+  //char buffer[128];
 
   if (neo_wifi.wifi_has_control())
   {
@@ -299,12 +299,8 @@ void moveBase()
   int pwm1 = motor1_pid.compute(req_rpm.motor1, current_rpm1);
   int pwm2 = motor2_pid.compute(req_rpm.motor2, current_rpm2);
 
-  if (cmd_vel_timed_out)
-  {
-    pwm1 = 0;
-    pwm2 = 0;
-  }
 
+/*
   if (DEBUG)
   {
     sprintf(buffer, "rpm 1 req/actual: %d / %d rpm 2 rerq/act: %d / %d", req_rpm.motor1, current_rpm1,
@@ -316,6 +312,7 @@ void moveBase()
     sprintf(buffer, "pwm %d  %d", pwm1, pwm2);
     nh.loginfo(buffer);
   }
+*/
 
   motor1_controller.spin(pwm1);
   motor2_controller.spin(pwm2);
@@ -323,13 +320,14 @@ void moveBase()
   Kinematics::velocities current_vel;
 
   current_vel = kinematics.getVelocities(current_rpm1, current_rpm2);
-
+/*
   if (DEBUG)
   {
     sprintf(buffer, "cmd/act vel: %.1f / %.1f  %.1f / %.1f  %.1f / %.1f", g_req_linear_vel_x, current_vel.linear_x, g_req_linear_vel_y, current_vel.linear_y,
             g_req_angular_vel_z, current_vel.angular_z);
     nh.loginfo(buffer);
   }
+*/
   //pass velocities to publisher object
   raw_vel_msg.linear_x = current_vel.linear_x;
   raw_vel_msg.linear_y = current_vel.linear_y;
